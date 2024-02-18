@@ -1,0 +1,11 @@
+{% extends 'main.html' %}
+{% block content %}
+<div>
+    <form method="POST" action="">
+        {% csrf_token %}
+        <!-- as_p styles the elements of the from as paragraphs -->
+        {{ form.as_p }} 
+        <input type="submit" value="Submit">
+    </form>
+</div>
+{% endblock %}
