@@ -2,4 +2,7 @@
 {% block content %}
 <h1>Room ID: {{ room.id }}</h1>
 <h2>Room Name: {{ room.name }}</h2>
+{% if room.description %}
+    <h3>{{ room.description }}</h3>
+{% endif %}
 {% endblock %}
