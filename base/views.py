@@ -2,6 +2,10 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.db.models import Q
 from .models import Room, Topic
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
 from .forms import RoomForm
 
 
@@ -11,6 +15,41 @@ from .forms import RoomForm
 #     {'id': 3, 'name': 'Lets learn JavaScript!'},
 # ]
 
+
+def loginPage(request):
+    """"""
+    if request.user.is_authenticated:
+        return redirect('home')
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        try:
+            # 'objects.get' retrieves a single object
+            # checks if the user exists
+            user = User.objects.get(username=username)
+        except:
+            # we don't need to pass it in the context dict it is recognized by the app
+            messages.error(request, 'User does not exist')
+
+        # validates users credentials if they match we will create a session
+        user = authenticate(request, username=username, password=password)
+        # if the credentials does not match
+        if not user:
+            messages.error(request, 'Wrong Password')
+        else:
+            # elif the authentication was succesful we create a session for the user
+            login(request, user)
+            return redirect('home')
+    context = {}
+    return render(request, 'base/login_register.html', context)
+
+
+def logoutUser(request):
+    """"""
+    logout(request)
+    return redirect('home')
+
+
 def home(request):
     """"""
     q = request.GET.get('q') if request.GET.get('q') != None else ''
@@ -19,6 +58,7 @@ def home(request):
     # we'll still be able to return the results for Python Rooms
     # But in case the q is set to an empty string icontains
     # returns all the rooms we have in our db
+    #'objects.filter' retrieves all the objects where field is equal to value
     rooms = Room.objects.filter(
         Q(topic__name__icontains=q) | # Topic Name Rooms
         Q(name__icontains=q) | # Room Name
@@ -42,6 +82,7 @@ def room(request, id):
     return render(request, 'base/room.html', {'room': room})
 
 
+@login_required(login_url='login')
 def createRoom(request):
     """"""
     form = RoomForm()
@@ -60,6 +101,7 @@ def createRoom(request):
     return render(request, 'base/room_form.html', context)
 
 
+@login_required(login_url='login')
 def updateRoom(request, id):
     """"""
     room = Room.objects.get(id=int(id))
@@ -68,6 +110,8 @@ def updateRoom(request, id):
     # we relaod all the data of the instance and pass it
     # to the values of the form now the form has labels/attributes
     # and the value for each attribute/label reloaded
+    if request.user != room.host:
+        return HttpResponse('Unauthorized')
     if request.method == 'POST':
         form = RoomForm(request.POST, instance=room) # We specify the instance
         # we want to update to update a Room
@@ -78,9 +122,12 @@ def updateRoom(request, id):
     return render(request, 'base/room_form.html', context)
 
 
+@login_required(login_url='login')
 def deleteRoom(request, id):
     """"""
     room = Room.objects.get(id=int(id))
+    if request.user != room.host:
+        return HttpResponse('Unauthorized')
     if request.method == 'POST': # if the form is submitted
         room.delete()
         return redirect('home')
