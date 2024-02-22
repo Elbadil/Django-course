@@ -5,6 +5,7 @@ from .models import Room, Topic
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from .forms import RoomForm
 
@@ -18,10 +19,11 @@ from .forms import RoomForm
 
 def loginPage(request):
     """"""
+    page = 'login'
     if request.user.is_authenticated:
         return redirect('home')
     if request.method == 'POST':
-        username = request.POST.get('username')
+        username = request.POST.get('username').lower()
         password = request.POST.get('password')
         try:
             # 'objects.get' retrieves a single object
@@ -37,10 +39,10 @@ def loginPage(request):
         if not user:
             messages.error(request, 'Wrong Password')
         else:
-            # elif the authentication was succesful we create a session for the user
+            # elif the authentication was successful we create a session for the user
             login(request, user)
             return redirect('home')
-    context = {}
+    context = {'page': page}
     return render(request, 'base/login_register.html', context)
 
 
@@ -48,6 +50,31 @@ def logoutUser(request):
     """"""
     logout(request)
     return redirect('home')
+
+
+def registerPage(request):
+    """"""
+    form = UserCreationForm()
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            # before saving the user we need to make sure the username
+            # the user entered needs to be saved in lowercase in our database
+            # because we will do the same when we get the username
+            # when the user wants to login in to our app
+            # this is a way to handle case sensitive usernames
+            user.username = user.username.lower()
+            user.save() # now we commit the changes to our users table
+            login(request, user)
+            return redirect('home')
+        else:
+            messages.error(request, 'An Error occurred During Registration')
+    context = {
+        'page': 'register',
+        'form': form
+    }
+    return render(request, 'base/login_register.html', context)
 
 
 def home(request):
@@ -87,7 +114,7 @@ def createRoom(request):
     """"""
     form = RoomForm()
     if request.method == "POST": # if its a post request
-        form = RoomForm(request.POST) # request.POST returns the Data submited as a key-value pair dict
+        form = RoomForm(request.POST) # request.POST returns the Data submitted as a key-value pair dict
         # <QueryDict: {'csrfmiddlewaretoken':
         # ['X0XdveekWGlEuocVKRu2RBaRJzFwP6dZbvM7BHd2v84fB0MxI8fEglSD1zTbvUz5'],
         # 'host': ['2'],
@@ -107,7 +134,7 @@ def updateRoom(request, id):
     room = Room.objects.get(id=int(id))
     form = RoomForm(instance=room) # when we pass as argument
     # instance to the RoomForm as a key and and the Room instance as a value
-    # we relaod all the data of the instance and pass it
+    # we reload all the data of the instance and pass it
     # to the values of the form now the form has labels/attributes
     # and the value for each attribute/label reloaded
     if request.user != room.host:

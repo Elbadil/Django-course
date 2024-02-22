@@ -17,7 +17,7 @@ class Room(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True) # null for database and blank is when we save a form
     # participants =
-    updated = models.DateTimeField(auto_now=True) # everytime we save this module the datetime is updated
+    updated = models.DateTimeField(auto_now=True) # every time we save this module the datetime is updated
     created = models.DateTimeField(auto_now_add=True) # only saves datetime when we create the model
 
     class Meta:
