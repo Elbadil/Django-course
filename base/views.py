@@ -95,12 +95,21 @@ def home(request):
     # to perform multiple search in the Rooms we have registered
     room_count = rooms.count()
     topics = Topic.objects.all()
+    room_messages = Message.objects.filter(
+        room__topic__name__icontains=q
+    ).order_by('-created')
     context = {
         'rooms': rooms,
         'topics': topics,
-        'room_count': room_count
+        'room_count': room_count,
+        'room_messages': room_messages
     }
     return render(request, 'base/home.html', context)
+
+
+def userProfile(request, id):
+    """"""
+    return
 
 
 def room(request, id):
