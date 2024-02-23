@@ -22,8 +22,16 @@
             {% if room_messages %}
                 {% for message in room_messages %}
                 <div>
-                    <small>@{{ message.user }} {{ message.updated | timesince }} ago</small>
+                    {% if message.edited %}
+                        <small>@{{ message.user }} Edited {{ message.updated | timesince }} ago</small>
+                    {% else %}
+                        <small>@{{ message.user }} {{ message.updated | timesince }} ago</small>
+                    {% endif %}
                     <p>{{ message }}</p>
+                    {% if request.user == message.user %}
+                        <a href="{% url 'update-message' message.id %}">Edit</a>
+                        <a href="{% url 'delete-message' message.id %}">Delete</a>
+                    {% endif %}
                     <hr>
                 </div>
                 {% endfor %}

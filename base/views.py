@@ -178,3 +178,36 @@ def deleteRoom(request, id):
         room.delete()
         return redirect('home')
     return render(request, 'base/delete.html', {'obj': room.name})
+
+
+@login_required(login_url='login')
+def updateMessage(request, id):
+    """"""
+    message = Message.objects.get(id=int(id))
+    room_id = message.room.id
+    if request.user != message.user:
+        return HttpResponse('Unauthorized')
+    if request.method == 'POST':
+        new_body = request.POST.get('body')
+        if message.body == new_body:
+            # we won't update the message because it is the same as it used to be
+            return redirect('room', id=room_id)
+        # else we will update the message body with the new one that was entered
+        message.body = new_body
+        message.edited = True
+        message.save()
+        return redirect('room', id=room_id)
+    return render(request, 'base/message.html', {'message': message})
+
+
+@login_required(login_url='login')
+def deleteMessage(request, id):
+    """"""
+    message = Message.objects.get(id=int(id))
+    room_id = message.room.id
+    if request.user != message.user:
+        return HttpResponse('Unauthorized')
+    if request.method == 'POST': # if the form is submitted
+        message.delete()
+        return redirect('room', id=room_id)
+    return render(request, 'base/delete.html', {'obj': message.body})
