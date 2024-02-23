@@ -10,6 +10,9 @@
 
 <div class="home-container">
     <div>
+        {% if request.user.is_authenticated %}
+            <p>Hello {{ request.user }}</p>
+        {% endif %}
         <h3>Browse Topics</h3>
         <hr>
         <div>

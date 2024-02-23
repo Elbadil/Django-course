@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.db.models import Q
-from .models import Room, Topic
+from .models import Room, Topic, Message
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
@@ -106,7 +106,26 @@ def home(request):
 def room(request, id):
     """"""
     room = Room.objects.get(id=int(id))
-    return render(request, 'base/room.html', {'room': room})
+    # '_set.all()' Gives us the set of all room_messages of this room
+    # Message model has a field room which is a Foreign key
+    # to the room model
+    if request.method == 'POST':
+        Message.objects.create(
+            user=request.user,
+            room=room,
+            body=request.POST.get('body')
+        )
+        room.participants.add(request.user) # this is the way to add an object to a ManyToMany field
+        return redirect('room', id=room.id)
+
+    room_messages = room.message_set.all().order_by('-created')
+    participants = room.participants.all()
+    context = {
+        'room': room,
+        'room_messages': room_messages,
+        'participants': participants
+    }
+    return render(request, 'base/room.html', context)
 
 
 @login_required(login_url='login')
