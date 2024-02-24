@@ -9,3 +9,4 @@ class RoomForm(ModelForm):
         using the metadata from the room class"""
         model = Room
         fields = '__all__'
+        exclude = ['host', 'participants']

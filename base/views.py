@@ -159,7 +159,9 @@ def createRoom(request):
         # 'topic': ['2'], 'name': ['Adxel'], 'description': ['ffeGGG']}>
         # We can Pass it to the Form Class 'RoomForm' as an argument
         if form.is_valid(): # and if all the data is valid and respects all the defined types
-            form.save() # we can use the save method on the form and it directly saves
+            room = form.save(commit=False)
+            room.host = request.user
+            room.save() # we can use the save method on the form and it directly saves
             #the new Instance Created of the room to our database
             return redirect('home')
     context = {'form': form}
