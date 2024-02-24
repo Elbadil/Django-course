@@ -24,7 +24,7 @@ class Room(models.Model):
 
     class Meta:
         """"""
-        ordering = ['-updated', '-created'] # adding dash '-' means we want to order the results of the the query
+        ordering = ['-created'] # adding dash '-' means we want to order the results of the the query
         # in DESC order which means from the last created/updated to the first
         # the Meta class in Django models allows you to
         # customize various aspects of how the model behaves or

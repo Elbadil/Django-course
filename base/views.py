@@ -94,6 +94,7 @@ def home(request):
     # We use The Q class so we can be able to add '&' and '|' operators
     # to perform multiple search in the Rooms we have registered
     room_count = rooms.count()
+    rooms_all = Room.objects.all().count()
     topics = Topic.objects.all()
     room_messages = Message.objects.filter(
         room__topic__name__icontains=q
@@ -102,7 +103,8 @@ def home(request):
         'rooms': rooms,
         'topics': topics,
         'room_count': room_count,
-        'room_messages': room_messages
+        'rooms_count': rooms_all,
+        'room_messages': room_messages,
     }
     return render(request, 'base/home.html', context)
 
