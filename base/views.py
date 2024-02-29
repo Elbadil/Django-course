@@ -98,7 +98,7 @@ def home(request):
     topics = Topic.objects.all()
     room_messages = Message.objects.filter(
         room__topic__name__icontains=q
-    ).order_by('-created')
+    )
     context = {
         'rooms': rooms,
         'topics': topics,
@@ -114,14 +114,16 @@ def userProfile(request, id):
     user = User.objects.get(id=int(id))
     user_rooms = user.room_set.all()
     user_messages = user.message_set.all()
+    rooms_all = Room.objects.all().count()
     topics = Topic.objects.all()
     context = {
         'user': user,
         'rooms': user_rooms,
         'room_messages': user_messages,
+        'rooms_count': rooms_all,
         'topics': topics
     }
-    return render(request, 'base/user_profile.html', context)
+    return render(request, 'base/profile.html', context)
 
 
 def room(request, id):

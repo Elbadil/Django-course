@@ -45,5 +45,9 @@ class Message(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     edited = models.BooleanField(default=False)
 
+    class Meta:
+        """"""
+        ordering = ['-created']
+
     def __str__(self) -> str:
         return self.body[:50]
