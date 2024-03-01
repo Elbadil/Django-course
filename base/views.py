@@ -41,7 +41,8 @@ def loginPage(request):
         else:
             # elif the authentication was successful we create a session for the user
             login(request, user)
-            return redirect('home')
+            next_page = request.GET.get('next')
+            return redirect(next_page) if next_page else redirect('home')
     context = {'page': page}
     return render(request, 'base/login_register.html', context)
 
@@ -67,7 +68,7 @@ def registerPage(request):
             user.username = user.username.lower()
             user.save() # now we commit the changes to our users table
             login(request, user)
-            return redirect('home')
+            return redirect('login')
         else:
             messages.error(request, 'An Error occurred During Registration')
     context = {
@@ -154,27 +155,43 @@ def room(request, id):
 @login_required(login_url='login')
 def createRoom(request):
     """"""
+    topics = Topic.objects.all()
     form = RoomForm()
     if request.method == "POST": # if its a post request
-        form = RoomForm(request.POST) # request.POST returns the Data submitted as a key-value pair dict
+        topic_name = request.POST.get('topic') 
+        topic, created = Topic.objects.get_or_create(name=topic_name)
+
+        Room.objects.create(
+            topic=topic,
+            host=request.user,
+            name=request.POST.get('name'),
+            description=request.POST.get('description')
+        )
+        # request.POST returns the Data submitted as a key-value pair dict
         # <QueryDict: {'csrfmiddlewaretoken':
         # ['X0XdveekWGlEuocVKRu2RBaRJzFwP6dZbvM7BHd2v84fB0MxI8fEglSD1zTbvUz5'],
         # 'host': ['2'],
         # 'topic': ['2'], 'name': ['Adxel'], 'description': ['ffeGGG']}>
         # We can Pass it to the Form Class 'RoomForm' as an argument
-        if form.is_valid(): # and if all the data is valid and respects all the defined types
-            room = form.save(commit=False)
-            room.host = request.user
-            room.save() # we can use the save method on the form and it directly saves
+
+        # if form.is_valid(): # and if all the data is valid and respects all the defined types
+            # room = form.save(commit=False)
+            # room.host = request.user
+            # room.save() # we can use the save method on the form and it directly saves
             #the new Instance Created of the room to our database
-            return redirect('home')
-    context = {'form': form}
-    return render(request, 'base/room_form.html', context)
+        return redirect('home')
+    context = {
+        'form': form,
+        'topics': topics,
+        'request_type': "Create",
+    }
+    return render(request, 'base/create-room.html', context)
 
 
 @login_required(login_url='login')
 def updateRoom(request, id):
     """"""
+    topics = Topic.objects.all()
     room = Room.objects.get(id=int(id))
     form = RoomForm(instance=room) # when we pass as argument
     # instance to the RoomForm as a key and and the Room instance as a value
@@ -184,13 +201,24 @@ def updateRoom(request, id):
     if request.user != room.host:
         return HttpResponse('Unauthorized')
     if request.method == 'POST':
-        form = RoomForm(request.POST, instance=room) # We specify the instance
-        # we want to update to update a Room
-        if form.is_valid():
-            form.save()
-            return redirect('home')
-    context = {'form': form}
-    return render(request, 'base/room_form.html', context)
+        topic_name = request.POST.get('topic') 
+        topic, created = Topic.objects.get_or_create(name=topic_name)
+        room.topic = topic
+        room.name = request.POST.get('name')
+        room.description = request.POST.get('description')
+        room.save()
+        # form = RoomForm(request.POST, instance=room) # We specify the instance
+        # # we want to update to update a Room
+        # if form.is_valid():
+        #     form.save()
+        return redirect('home')
+    context = {
+        'form': form,
+        'topics': topics,
+        'request_type': "Update",
+        'room': room,
+    }
+    return render(request, 'base/create-room.html', context)
 
 
 @login_required(login_url='login')
