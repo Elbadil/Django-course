@@ -44,7 +44,7 @@ def loginPage(request):
             next_page = request.GET.get('next')
             return redirect(next_page) if next_page else redirect('home')
     context = {'page': page}
-    return render(request, 'base/login_register.html', context)
+    return render(request, 'base/login.html', context)
 
 
 def logoutUser(request):
@@ -67,7 +67,6 @@ def registerPage(request):
             # this is a way to handle case sensitive usernames
             user.username = user.username.lower()
             user.save() # now we commit the changes to our users table
-            login(request, user)
             return redirect('login')
         else:
             messages.error(request, 'An Error occurred During Registration')
@@ -75,7 +74,7 @@ def registerPage(request):
         'page': 'register',
         'form': form
     }
-    return render(request, 'base/login_register.html', context)
+    return render(request, 'base/signup.html', context)
 
 @login_required(login_url='login')
 def updateUser(request):
