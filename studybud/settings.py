@@ -43,6 +43,9 @@ INSTALLED_APPS = [
     'corsheaders',
 ]
 
+# Defining the User Model to be the User Model that we've created not the default one
+AUTH_USER_MODEL = 'base.User'
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -125,10 +128,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+MEDIA_URL = '/images/'
 
+# Specifying the path for our static content
 STATICFILES_DIRS = [
     BASE_DIR / 'static'
 ]
+
+# User uploaded content | Where we'll be saving the user's images ..
+MEDIA_ROOT = BASE_DIR / 'static/images'
 
 # STATIC_ROOT
 
