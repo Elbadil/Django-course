@@ -1,5 +1,4 @@
-{% extends 'main.html' %}
-{% block content %}
+{% extends 'main.html' %} {% block content %}
 <main class="auth layout">
   <div class="container">
     <div class="layout__box">
@@ -11,12 +10,22 @@
       <div class="layout__body">
         <h2 class="auth__tagline">Find your study partner</h2>
 
-        <form class="form" Method="POST" action="#">
-          {% csrf_token %}
+        <form
+          class="form"
+          method="POST"
+          action=""
+          enctype="multipart/form-data"
+        >
+          {% csrf_token %} 
           {% for field in form %}
           <div class="form__group form__group">
             <label for="room_name">{{ field.label }}</label>
             {{ field }}
+            {% if field.errors %}
+              {% for error in field.errors %}
+              <span>{{error}}</span>
+              {% endfor %}
+            {% endif %}
           </div>
           {% endfor %}
 

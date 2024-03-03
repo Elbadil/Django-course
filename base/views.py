@@ -4,9 +4,8 @@ from django.db.models import Q
 from .models import Room, Topic, Message, User
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
-from .forms import RoomForm, UserForm
+from .forms import RoomForm, UserForm, MyUserCreationForm
 
 
 # rooms = [
@@ -18,22 +17,23 @@ from .forms import RoomForm, UserForm
 
 def loginPage(request):
     """"""
-    page = 'login'
     if request.user.is_authenticated:
         return redirect('home')
+    context = {}
     if request.method == 'POST':
-        username = request.POST.get('username').lower()
+        email = request.POST.get('email')
         password = request.POST.get('password')
         try:
             # 'objects.get' retrieves a single object
             # checks if the user exists
-            user = User.objects.get(username=username)
+            user = User.objects.get(email=email)
         except:
             # we don't need to pass it in the context dict it is recognized by the app
-            messages.error(request, 'User does not exist')
+            messages.error(request, 'Email does not exist')
+            return render(request, 'base/login.html', context)
 
         # validates users credentials if they match we will create a session
-        user = authenticate(request, username=username, password=password)
+        user = authenticate(request, email=email, password=password)
         # if the credentials does not match
         if not user:
             messages.error(request, 'Wrong Password')
@@ -42,7 +42,7 @@ def loginPage(request):
             login(request, user)
             next_page = request.GET.get('next')
             return redirect(next_page) if next_page else redirect('home')
-    context = {'page': page}
+
     return render(request, 'base/login.html', context)
 
 
@@ -54,23 +54,22 @@ def logoutUser(request):
 
 def registerPage(request):
     """"""
-    form = UserCreationForm()
+    form = MyUserCreationForm()
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = MyUserCreationForm(request.POST, request.FILES)
         if form.is_valid():
-            user = form.save(commit=False)
+            form.save()
+            # user = form.save(commit=False)
             # before saving the user we need to make sure the username
             # the user entered needs to be saved in lowercase in our database
             # because we will do the same when we get the username
             # when the user wants to login in to our app
             # this is a way to handle case sensitive usernames
-            user.username = user.username.lower()
-            user.save() # now we commit the changes to our users table
+            # user.username = user.username.lower()
+            # user.save() # now we commit the changes to our users table
             return redirect('login')
-        else:
-            messages.error(request, 'An Error occurred During Registration')
+
     context = {
-        'page': 'register',
         'form': form
     }
     return render(request, 'base/signup.html', context)
